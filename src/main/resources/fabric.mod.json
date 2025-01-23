@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "loot4everyone",
+	"version": "${version}",
+	"name": "Loot4Everyone",
+	"description": "One loot chest per player! Loot for Everyone!",
+	"authors": [
+		"MimStar!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/loot4everyone/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.loot4everyone.Loot4Everyone"
+		],
+		"client": [
+			"com.loot4everyone.Loot4EveryoneClient"
+		]
+	},
+	"mixins": [
+		"loot4everyone.mixins.json",
+		{
+			"config": "loot4everyone.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
