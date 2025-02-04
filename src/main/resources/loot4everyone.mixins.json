@@ -1,12 +1,14 @@
 {
-	"required": true,
-	"package": "com.loot4everyone.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin",
-		"ChestBlockEntityMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "com.loot4everyone.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BarrelBlockEntityMixin",
+    "ChestBlockEntityMixin",
+    "ExampleMixin",
+    "ItemFrameEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }
