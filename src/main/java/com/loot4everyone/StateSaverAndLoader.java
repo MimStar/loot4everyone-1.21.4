@@ -1,5 +1,7 @@
 package com.loot4everyone;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Item;
@@ -9,18 +11,33 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class StateSaverAndLoader extends PersistentState {
 
-    public HashMap<UUID,PlayerData> players = new HashMap<>();
-    public HashMap<BlockPos,ChestData> chests = new HashMap<>();
-    public HashMap<BlockPos, ItemFrameData> itemframes = new HashMap<>();
+    public HashMap<UUID,PlayerData> players;
+    public HashMap<BlockPos,ChestData> chests;
+    public HashMap<BlockPos, ItemFrameData> itemframes;
 
+    public StateSaverAndLoader(){
+        this.players = new HashMap<>();
+        this.chests = new HashMap<>();
+        this.itemframes = new HashMap<>();
+    }
+
+    public StateSaverAndLoader(Map<UUID,PlayerData> players ,Map<BlockPos,ChestData> chests, Map<BlockPos, ItemFrameData> itemframes){
+        this.players = new HashMap<>(players);
+        this.chests = new HashMap<>(chests);
+        this.itemframes = new HashMap<>(itemframes);
+    }
+
+    /*
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup wrapperLookup){
         NbtCompound playersNbt = new NbtCompound();
@@ -76,17 +93,37 @@ public class StateSaverAndLoader extends PersistentState {
         });
         return state;
     }
+     */
 
-    private static final Type<StateSaverAndLoader> type = new Type<>(
+    public static BlockPos fromStringToBlockPos(String string){
+        String[] posParts = string.split(",");
+        return new BlockPos(Integer.parseInt(posParts[0]), Integer.parseInt(posParts[1]), Integer.parseInt(posParts[2]));
+    }
+
+    public static String fromBlockPosToString(BlockPos pos) {
+        return pos.getX() + "," + pos.getY() + "," + pos.getZ();
+    }
+
+    public static final Codec<StateSaverAndLoader> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString,UUID::toString),
+                    PlayerData.CODEC).fieldOf("players").forGetter(state -> state.players),
+            Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
+                    ChestData.CODEC).fieldOf("chests").forGetter(state -> state.chests),
+            Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
+                    ItemFrameData.CODEC).fieldOf("itemframes").forGetter(state -> state.itemframes)
+    ).apply(instance, StateSaverAndLoader::new));
+
+    private static final PersistentStateType<StateSaverAndLoader> type = new PersistentStateType<>(
+            Loot4Everyone.MOD_ID,
             StateSaverAndLoader::new,
-            StateSaverAndLoader::createFromNbt,
+            CODEC,
             null
     );
 
     public static StateSaverAndLoader getServerState(MinecraftServer server){
         PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD)).getPersistentStateManager();
 
-        StateSaverAndLoader state = persistentStateManager.getOrCreate(type, Loot4Everyone.getModId());
+        StateSaverAndLoader state = persistentStateManager.getOrCreate(type);
 
         state.markDirty();
 
