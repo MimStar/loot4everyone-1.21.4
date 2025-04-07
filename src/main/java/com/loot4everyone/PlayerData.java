@@ -1,5 +1,7 @@
 package com.loot4everyone;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
@@ -14,8 +16,15 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 
 public class PlayerData {
-    private HashMap<BlockPos, List<ItemStack>> inventory = new HashMap<>();
-    private List<BlockPos> elytras = new ArrayList<>();
+    private HashMap<BlockPos, List<ItemStack>> inventory;
+
+    public PlayerData(){
+        inventory = new HashMap<>();
+    }
+
+    public PlayerData(String inventoryString){
+        stringToInventory(inventoryString);
+    }
 
     public HashMap<BlockPos, List<ItemStack>> getInventory() {
         return inventory;
@@ -43,7 +52,12 @@ public class PlayerData {
     }
 
     public void stringToInventory(String data) {
-        inventory.clear();
+        if (inventory != null){
+            inventory.clear();
+        }
+        else{
+            inventory = new HashMap<>();
+        }
         String[] entries = data.split(";");
         for (String entry : entries) {
             String[] parts = entry.split("=");
@@ -58,5 +72,10 @@ public class PlayerData {
             inventory.put(pos, stacks);
         }
     }
+
+    public static final Codec<PlayerData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.fieldOf("inventory").forGetter(PlayerData::inventoryToString)
+    ).apply(instance, PlayerData::new));
+
 
 }
