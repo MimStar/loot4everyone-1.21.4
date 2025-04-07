@@ -2,12 +2,14 @@ package com.loot4everyone;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
@@ -130,28 +132,33 @@ public class StateSaverAndLoader extends PersistentState {
         return state;
     }
 
-    public static PlayerData getPlayerState(LivingEntity player){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
+    public static PlayerData getPlayerState(MinecraftServer server, LivingEntity player){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
     }
 
-    public static ChestData getChestState(LivingEntity player, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
+    public static ChestData getChestState(MinecraftServer server, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.chests.computeIfAbsent(blockPos, blockPos1 -> new ChestData());
     }
 
-    public static ItemFrameData getItemFrameState(ItemFrameEntity itemFrame, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(itemFrame.getServer()));
+    public static ItemFrameData getItemFrameState(MinecraftServer server, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.itemframes.computeIfAbsent(blockPos, blockPos1 -> new ItemFrameData());
     }
 
-    public static boolean isChestStatePresent(LivingEntity player, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
+    public static boolean isItemFrameStatePresent(MinecraftServer server, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+        return serverState.itemframes.containsKey(blockPos);
+    }
+
+    public static boolean isChestStatePresent(MinecraftServer server, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.chests.containsKey(blockPos);
     }
 
-    public static boolean isChestStatePresentInPlayerState(LivingEntity player, BlockPos blockPos){
-        PlayerData playerState = getPlayerState(player);
+    public static boolean isChestStatePresentInPlayerState(MinecraftServer server, LivingEntity player, BlockPos blockPos){
+        PlayerData playerState = getPlayerState(server, player);
         return playerState.getInventory().containsKey(blockPos);
     }
 
