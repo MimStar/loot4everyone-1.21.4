@@ -1,7 +1,5 @@
 package com.loot4everyone;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.loot.LootTable;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -10,13 +8,6 @@ import net.minecraft.util.Identifier;
 public class ChestData {
     private long lootTableSeed;
     private RegistryKey<LootTable> lootTable;
-
-    public ChestData(){
-    }
-
-    public ChestData(String data){
-        stringToChestData(data);
-    }
 
     public long getLootTableSeed(){
         return lootTableSeed;
@@ -45,10 +36,6 @@ public class ChestData {
             lootTable = RegistryKey.of(RegistryKeys.LOOT_TABLE, Identifier.of(parts[1]));
         }
     }
-
-    public static final Codec<ChestData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("chestdata").forGetter(ChestData::chestDataToString)
-    ).apply(instance, ChestData::new));
 
 
 }

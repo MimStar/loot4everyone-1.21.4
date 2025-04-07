@@ -1,45 +1,26 @@
 package com.loot4everyone;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class StateSaverAndLoader extends PersistentState {
 
-    public HashMap<UUID,PlayerData> players;
-    public HashMap<BlockPos,ChestData> chests;
-    public HashMap<BlockPos, ItemFrameData> itemframes;
+    public HashMap<UUID,PlayerData> players = new HashMap<>();
+    public HashMap<BlockPos,ChestData> chests = new HashMap<>();
+    public HashMap<BlockPos, ItemFrameData> itemframes = new HashMap<>();
 
-    public StateSaverAndLoader(){
-        this.players = new HashMap<>();
-        this.chests = new HashMap<>();
-        this.itemframes = new HashMap<>();
-    }
-
-    public StateSaverAndLoader(Map<UUID,PlayerData> players ,Map<BlockPos,ChestData> chests, Map<BlockPos, ItemFrameData> itemframes){
-        this.players = new HashMap<>(players);
-        this.chests = new HashMap<>(chests);
-        this.itemframes = new HashMap<>(itemframes);
-    }
-
-    /*
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup wrapperLookup){
         NbtCompound playersNbt = new NbtCompound();
@@ -95,70 +76,45 @@ public class StateSaverAndLoader extends PersistentState {
         });
         return state;
     }
-     */
 
-    public static BlockPos fromStringToBlockPos(String string){
-        String[] posParts = string.split(",");
-        return new BlockPos(Integer.parseInt(posParts[0]), Integer.parseInt(posParts[1]), Integer.parseInt(posParts[2]));
-    }
-
-    public static String fromBlockPosToString(BlockPos pos) {
-        return pos.getX() + "," + pos.getY() + "," + pos.getZ();
-    }
-
-    public static final Codec<StateSaverAndLoader> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString,UUID::toString),
-                    PlayerData.CODEC).fieldOf("players").forGetter(state -> state.players),
-            Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
-                    ChestData.CODEC).fieldOf("chests").forGetter(state -> state.chests),
-            Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
-                    ItemFrameData.CODEC).fieldOf("itemframes").forGetter(state -> state.itemframes)
-    ).apply(instance, StateSaverAndLoader::new));
-
-    private static final PersistentStateType<StateSaverAndLoader> type = new PersistentStateType<>(
-            Loot4Everyone.MOD_ID,
+    private static final Type<StateSaverAndLoader> type = new Type<>(
             StateSaverAndLoader::new,
-            CODEC,
+            StateSaverAndLoader::createFromNbt,
             null
     );
 
     public static StateSaverAndLoader getServerState(MinecraftServer server){
         PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD)).getPersistentStateManager();
 
-        StateSaverAndLoader state = persistentStateManager.getOrCreate(type);
+        StateSaverAndLoader state = persistentStateManager.getOrCreate(type, Loot4Everyone.getModId());
 
         state.markDirty();
 
         return state;
     }
 
-    public static PlayerData getPlayerState(MinecraftServer server, LivingEntity player){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+    public static PlayerData getPlayerState(LivingEntity player){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
         return serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
     }
 
-    public static ChestData getChestState(MinecraftServer server, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+    public static ChestData getChestState(LivingEntity player, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
         return serverState.chests.computeIfAbsent(blockPos, blockPos1 -> new ChestData());
     }
 
-    public static ItemFrameData getItemFrameState(MinecraftServer server, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+    public static ItemFrameData getItemFrameState(ItemFrameEntity itemFrame, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(itemFrame.getServer()));
         return serverState.itemframes.computeIfAbsent(blockPos, blockPos1 -> new ItemFrameData());
     }
 
-    public static boolean isItemFrameStatePresent(MinecraftServer server, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
-        return serverState.itemframes.containsKey(blockPos);
-    }
-
-    public static boolean isChestStatePresent(MinecraftServer server, BlockPos blockPos){
-        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+    public static boolean isChestStatePresent(LivingEntity player, BlockPos blockPos){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(player.getServer()));
         return serverState.chests.containsKey(blockPos);
     }
 
-    public static boolean isChestStatePresentInPlayerState(MinecraftServer server, LivingEntity player, BlockPos blockPos){
-        PlayerData playerState = getPlayerState(server, player);
+    public static boolean isChestStatePresentInPlayerState(LivingEntity player, BlockPos blockPos){
+        PlayerData playerState = getPlayerState(player);
         return playerState.getInventory().containsKey(blockPos);
     }
 
