@@ -174,13 +174,13 @@ public class Loot4Everyone implements ModInitializer {
 			ChestData chestData = StateSaverAndLoader.getChestState(server, chest.getPos());
 			chestData.setLootTable(chest.getLootTable());
 			chestData.setLootTableSeed(chest.getLootTableSeed());
-			StateSaverAndLoader.saveState(Objects.requireNonNull(player.getServer()));
+			StateSaverAndLoader.saveState(server);
 		}
 		else if (block instanceof BarrelBlockEntity barrel){
 			ChestData chestData = StateSaverAndLoader.getChestState(server, barrel.getPos());
 			chestData.setLootTable(barrel.getLootTable());
 			chestData.setLootTableSeed(barrel.getLootTableSeed());
-			StateSaverAndLoader.saveState(Objects.requireNonNull(player.getServer()));
+			StateSaverAndLoader.saveState(server);
 		}
 	}
 
