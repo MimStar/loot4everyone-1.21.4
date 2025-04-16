@@ -78,7 +78,7 @@ public class Loot4Everyone implements ModInitializer {
 						return ActionResult.CONSUME;
 					}
 				}
-				if (chest.getLootTableSeed() != 0 && !StateSaverAndLoader.isChestStatePresent(server,chest.getPos())){
+				if (chest.getLootTableSeed() != 0 && chest.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(server,chest.getPos())){
 					addLootChest(player,chest);
 					return ActionResult.PASS;
 				}
@@ -98,7 +98,7 @@ public class Loot4Everyone implements ModInitializer {
 				if (number_of_players > 0 && (barrel.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(server,barrel.getPos()))){
 					return ActionResult.CONSUME;
 				}
-				if (barrel.getLootTableSeed() != 0 && !StateSaverAndLoader.isChestStatePresent(server,barrel.getPos())){
+				if (barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(server,barrel.getPos())){
 					addLootChest(player,barrel);
 					BarrelViewers.addViewer(player,barrel.getPos());
 					return ActionResult.PASS;

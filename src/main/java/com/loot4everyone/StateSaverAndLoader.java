@@ -124,7 +124,7 @@ public class StateSaverAndLoader extends PersistentState {
     }
 
     public static void saveState(MinecraftServer server) {
-        PersistentStateManager persistentStateManager = Objects.requireNonNull(server.getWorld(World.OVERWORLD)).getPersistentStateManager();
-        persistentStateManager.save();
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+        serverState.markDirty();
     }
 }

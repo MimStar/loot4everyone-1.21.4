@@ -26,6 +26,9 @@ public class ChestData {
     }
 
     public String chestDataToString() {
+        if (lootTable == null) {
+            return "";
+        }
         return lootTableSeed + "=" + lootTable.getValue().toString();
     }
 
