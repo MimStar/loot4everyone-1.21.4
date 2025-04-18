@@ -25,6 +25,9 @@ public class ItemFrameData {
         // Add playerPlaced
         sb.append(playerPlaced).append(";");
         // Add playersUsed UUIDs
+        if (playersUsed == null){
+            return sb.toString();
+        }
         for (UUID uuid : playersUsed) {
             sb.append(uuid.toString()).append(",");
         }
@@ -36,6 +39,9 @@ public class ItemFrameData {
     }
 
     public static ItemFrameData deserializeFromString(String data) {
+        if (data == null || data.isEmpty()) {
+            return new ItemFrameData();
+        }
         ItemFrameData itemFrameData = new ItemFrameData();
         String[] parts = data.split(";");
         if (parts.length >= 1) {

@@ -30,6 +30,9 @@ public class PlayerData {
     }
 
     public String inventoryToString() {
+        if (inventory == null){
+            return "";
+        }
         StringJoiner joiner = new StringJoiner(";");
         for (Map.Entry<BlockPos, List<ItemStack>> entry : inventory.entrySet()) {
             String pos = entry.getKey().getX() + "," + entry.getKey().getY() + "," + entry.getKey().getZ();
@@ -43,6 +46,9 @@ public class PlayerData {
     }
 
     public void stringToInventory(String data) {
+        if (data == null || data.isEmpty()) {
+            return;
+        }
         inventory.clear();
         String[] entries = data.split(";");
         for (String entry : entries) {
