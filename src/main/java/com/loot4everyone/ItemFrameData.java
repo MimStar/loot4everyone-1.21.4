@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class ItemFrameData {
     private boolean playerPlaced = false;
-    private List<UUID> playersUsed;
+    private List<UUID> playersUsed = new ArrayList<>();
 
     public ItemFrameData(){
         playersUsed = new ArrayList<>();
@@ -37,6 +37,9 @@ public class ItemFrameData {
         // Add playerPlaced
         sb.append(playerPlaced).append(";");
         // Add playersUsed UUIDs
+        if (playersUsed == null){
+            return sb.toString();
+        }
         for (UUID uuid : playersUsed) {
             sb.append(uuid.toString()).append(",");
         }
@@ -48,6 +51,9 @@ public class ItemFrameData {
     }
 
     public void deserializeFromString(String data) {
+        if (data == null || data.isEmpty()) {
+            return;
+        }
         String[] parts = data.split(";");
         if (parts.length >= 1) {
             // Parse playerPlaced

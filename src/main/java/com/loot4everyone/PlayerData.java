@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 
 public class PlayerData {
-    private HashMap<BlockPos, List<ItemStack>> inventory;
+    private HashMap<BlockPos, List<ItemStack>> inventory = new HashMap<>();
 
     public PlayerData(){
         inventory = new HashMap<>();
@@ -39,6 +39,9 @@ public class PlayerData {
     }
 
     public String inventoryToString() {
+        if (inventory == null){
+            return "";
+        }
         StringJoiner joiner = new StringJoiner(";");
         for (Map.Entry<BlockPos, List<ItemStack>> entry : inventory.entrySet()) {
             String pos = entry.getKey().getX() + "," + entry.getKey().getY() + "," + entry.getKey().getZ();
@@ -57,6 +60,9 @@ public class PlayerData {
         }
         else{
             inventory = new HashMap<>();
+        }
+        if (data == null || data.isEmpty()) {
+            return;
         }
         String[] entries = data.split(";");
         for (String entry : entries) {

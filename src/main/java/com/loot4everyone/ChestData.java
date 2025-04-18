@@ -40,6 +40,7 @@ public class ChestData {
     }
 
     public void stringToChestData(String data) {
+        if (data == null || data.isEmpty()) return;
         String[] parts = data.split("=");
         if (parts.length == 2) {
             lootTableSeed = Long.parseLong(parts[0]);
