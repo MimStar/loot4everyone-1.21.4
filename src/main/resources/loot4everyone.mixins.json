@@ -5,6 +5,7 @@
   "mixins": [
     "BarrelBlockEntityMixin",
     "ChestBlockEntityMixin",
+    "EntityMixin",
     "ExampleMixin",
     "ItemFrameEntityMixin"
   ],

@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.advancement.criterion.PlayerHurtEntityCriterion;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BarrelBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
@@ -33,6 +34,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +62,7 @@ public class Loot4Everyone implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		ServerLifecycleEvents.SERVER_STARTED.register((server) ->{
+		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
 			Loot4Everyone.server = server;
 		});
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
@@ -69,7 +72,15 @@ public class Loot4Everyone implements ModInitializer {
 				if (number_of_players > 0 && (chest.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(server,chest.getPos()) || StateSaverAndLoader.isItemFrameStatePresent(server,chest.getPos()))){
 					return ActionResult.CONSUME;
 				}
-				if (StateSaverAndLoader.isItemFrameStatePresent(server,chest.getPos())){
+				if (chest.getLootTableSeed() != 0 && chest.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,chest.getPos())){
+					ChestData chestData = StateSaverAndLoader.getChestState(Loot4Everyone.server, chest.getPos());
+					chestData.setLootTable(chest.getLootTable());
+					chestData.setLootTableSeed(chest.getLootTableSeed());
+					chest.setLootTable(null);
+					chest.setLootTableSeed(0);
+					StateSaverAndLoader.saveState(Loot4Everyone.server);
+				}
+				if (StateSaverAndLoader.isItemFrameStatePresent(Loot4Everyone.server,chest.getPos())){
 					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(server, chest.getPos());
 					if (itemFrameData.getPlayersUsed().contains(player.getUuid())){
 						return ActionResult.CONSUME;
@@ -81,44 +92,20 @@ public class Loot4Everyone implements ModInitializer {
 						return ActionResult.CONSUME;
 					}
 				}
-				if (chest.getLootTableSeed() != 0 && chest.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(server,chest.getPos())){
-					addLootChest(player,chest);
-					return ActionResult.PASS;
-				}
-				if (StateSaverAndLoader.isChestStatePresent(server,chest.getPos())){
-					if (StateSaverAndLoader.isChestStatePresentInPlayerState(server,player,chest.getPos())){
-						setInventoryLootChest(player,chest);
-						return ActionResult.PASS;
-					}
-					else{
-						generateLootChest(player,chest);
-						return ActionResult.PASS;
-					}
-				}
 			}
 			if (blockEntity instanceof BarrelBlockEntity barrel){
 				int number_of_players = BarrelViewers.getViewerCount(barrel.getPos());
 				if (number_of_players > 0 && (barrel.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(server,barrel.getPos()))){
 					return ActionResult.CONSUME;
 				}
-				if (barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(server,barrel.getPos())){
-					addLootChest(player,barrel);
-					BarrelViewers.addViewer(player,barrel.getPos());
-					return ActionResult.PASS;
+				if (barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,barrel.getPos())){
+					ChestData chestData = StateSaverAndLoader.getChestState(Loot4Everyone.server, barrel.getPos());
+					chestData.setLootTable(barrel.getLootTable());
+					chestData.setLootTableSeed(barrel.getLootTableSeed());
+					barrel.setLootTable(null);
+					barrel.setLootTableSeed(0);
+					StateSaverAndLoader.saveState(Loot4Everyone.server);
 				}
-				if (StateSaverAndLoader.isChestStatePresent(server,barrel.getPos())){
-					if (StateSaverAndLoader.isChestStatePresentInPlayerState(server,player,barrel.getPos())){
-						setInventoryLootChest(player,barrel);
-						BarrelViewers.addViewer(player,barrel.getPos());
-						return ActionResult.PASS;
-					}
-					else{
-						generateLootChest(player,barrel);
-						BarrelViewers.addViewer(player,barrel.getPos());
-						return ActionResult.PASS;
-					}
-				}
-
 			}
 			return ActionResult.PASS;
 		});
@@ -164,7 +151,6 @@ public class Loot4Everyone implements ModInitializer {
 					else{
 						BlockPos pos = itemFrame.getBlockPos();
 						world.setBlockState(pos,Blocks.CHEST.getDefaultState());
-						BlockEntity blockEntity = world.getBlockEntity(pos);
 						itemFrame.discard();
 						return ActionResult.CONSUME;
 					}
@@ -172,51 +158,19 @@ public class Loot4Everyone implements ModInitializer {
 			}
 			return ActionResult.PASS;
 		});
+		PlayerBlockBreakEvents.BEFORE.register((World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) -> {
+			if (blockEntity instanceof ChestBlockEntity chest){
+				if ((chest.getLootTableSeed() != 0 && chest.getLootTable() != null) || StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,pos)){
+					return false;
+				}
+			}
+			else if (blockEntity instanceof BarrelBlockEntity barrel){
+				if ((barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null) || StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,pos)){
+					return false;
+				}
+			}
+			return true;
+		});
 		LOGGER.info("Loot4Everyone has been successfully loaded!");
-	}
-
-	private void addLootChest(PlayerEntity player, BlockEntity block){
-		if (block instanceof ChestBlockEntity chest) {
-			ChestData chestData = StateSaverAndLoader.getChestState(server, chest.getPos());
-			chestData.setLootTable(chest.getLootTable());
-			chestData.setLootTableSeed(chest.getLootTableSeed());
-			StateSaverAndLoader.saveState(server);
-		}
-		else if (block instanceof BarrelBlockEntity barrel){
-			ChestData chestData = StateSaverAndLoader.getChestState(server, barrel.getPos());
-			chestData.setLootTable(barrel.getLootTable());
-			chestData.setLootTableSeed(barrel.getLootTableSeed());
-			StateSaverAndLoader.saveState(server);
-		}
-	}
-
-	private void generateLootChest(PlayerEntity player, BlockEntity block){
-		if (block instanceof ChestBlockEntity chest) {
-			ChestData chestData = StateSaverAndLoader.getChestState(server, chest.getPos());
-			chest.setLootTable(chestData.getLootTable(), chestData.getLootTableSeed());
-			chest.generateLoot(player);
-		}
-		else if (block instanceof BarrelBlockEntity barrel){
-			ChestData chestData = StateSaverAndLoader.getChestState(server, barrel.getPos());
-			barrel.setLootTable(chestData.getLootTable(), chestData.getLootTableSeed());
-			barrel.generateLoot(player);
-		}
-	}
-
-	private void setInventoryLootChest(PlayerEntity player, BlockEntity block){
-		if (block instanceof ChestBlockEntity chest) {
-			PlayerData playerData = StateSaverAndLoader.getPlayerState(server,player);
-			List<ItemStack> inventory = playerData.getInventory().get(chest.getPos());
-			for (int i = 0; i < inventory.size(); i++) {
-				chest.setStack(i, inventory.get(i));
-			}
-		}
-		else if (block instanceof BarrelBlockEntity barrel){
-			PlayerData playerData = StateSaverAndLoader.getPlayerState(server,player);
-			List<ItemStack> inventory = playerData.getInventory().get(barrel.getPos());
-			for (int i = 0; i < inventory.size(); i++) {
-				barrel.setStack(i, inventory.get(i));
-			}
-		}
 	}
 }
