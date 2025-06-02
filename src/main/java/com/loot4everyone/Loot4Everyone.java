@@ -7,36 +7,24 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.minecraft.advancement.criterion.PlayerHurtEntityCriterion;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BarrelBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.block.entity.TrappedChestBlockEntity;
-import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.loot.LootTable;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.swing.plaf.nimbus.State;
-import java.util.List;
-import java.util.Objects;
 
 public class Loot4Everyone implements ModInitializer {
 	public static final String MOD_ID = "loot4everyone";
@@ -75,7 +63,7 @@ public class Loot4Everyone implements ModInitializer {
 					chest.setLootTableSeed(0);
 					StateSaverAndLoader.saveState(Loot4Everyone.server);
 				}
-				if (StateSaverAndLoader.isItemFrameStatePresent(Loot4Everyone.server,chest.getPos())){
+				if (StateSaverAndLoader.isItemFrameStatePresent(Loot4Everyone.server,chest.getPos()) && world.getDimensionEntry().matchesKey(DimensionTypes.THE_END)){
 					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(server, chest.getPos());
 					if (itemFrameData.getPlayersUsed().contains(player.getUuid())){
 						return ActionResult.CONSUME;
