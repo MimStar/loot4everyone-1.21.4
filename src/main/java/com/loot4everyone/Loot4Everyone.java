@@ -52,7 +52,7 @@ public class Loot4Everyone implements ModInitializer {
 			BlockEntity blockEntity = world.getBlockEntity(hitResult.getBlockPos());
 			if (blockEntity instanceof ChestBlockEntity chest){
 				int number_of_players = ChestBlockEntity.getPlayersLookingInChestCount(world,hitResult.getBlockPos());
-				if (number_of_players > 0 && (chest.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(server,chest.getPos()) || StateSaverAndLoader.isItemFrameStatePresent(server,chest.getPos()))){
+				if (number_of_players > 0 && (chest.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,chest.getPos()) || StateSaverAndLoader.isItemFrameStatePresent(Loot4Everyone.server,chest.getPos()))){
 					return ActionResult.CONSUME;
 				}
 				if (chest.getLootTableSeed() != 0 && chest.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,chest.getPos())){
@@ -64,21 +64,21 @@ public class Loot4Everyone implements ModInitializer {
 					StateSaverAndLoader.saveState(Loot4Everyone.server);
 				}
 				if (StateSaverAndLoader.isItemFrameStatePresent(Loot4Everyone.server,chest.getPos()) && world.getDimensionEntry().matchesKey(DimensionTypes.THE_END)){
-					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(server, chest.getPos());
+					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(Loot4Everyone.server, chest.getPos());
 					if (itemFrameData.getPlayersUsed().contains(player.getUuid())){
 						return ActionResult.CONSUME;
 					}
 					else{
 						player.giveItemStack(Items.ELYTRA.getDefaultStack());
 						itemFrameData.getPlayersUsed().add(player.getUuid());
-						StateSaverAndLoader.saveState(server);
+						StateSaverAndLoader.saveState(Loot4Everyone.server);
 						return ActionResult.CONSUME;
 					}
 				}
 			}
 			if (blockEntity instanceof BarrelBlockEntity barrel){
 				int number_of_players = BarrelViewers.getViewerCount(barrel.getPos());
-				if (number_of_players > 0 && (barrel.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(server,barrel.getPos()))){
+				if (number_of_players > 0 && (barrel.getLootTableSeed() != 0 || StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,barrel.getPos()))){
 					return ActionResult.CONSUME;
 				}
 				if (barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null && !StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,barrel.getPos())){
@@ -109,7 +109,7 @@ public class Loot4Everyone implements ModInitializer {
 			if (entity instanceof ItemFrameEntity itemFrame){
 				ItemStack heldItem = itemFrame.getHeldItemStack();
 				if (heldItem.getItem() == Items.ELYTRA){
-					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(server, itemFrame.getBlockPos());
+					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(Loot4Everyone.server, itemFrame.getBlockPos());
 					if (itemFrameData.isPlayerPlaced()){
 						return ActionResult.PASS;
 					}
@@ -127,7 +127,7 @@ public class Loot4Everyone implements ModInitializer {
 			if (entity instanceof ItemFrameEntity itemFrame){
 				ItemStack heldItem = itemFrame.getHeldItemStack();
 				if (heldItem.getItem() == Items.ELYTRA){
-					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(server, itemFrame.getBlockPos());
+					ItemFrameData itemFrameData = StateSaverAndLoader.getItemFrameState(Loot4Everyone.server, itemFrame.getBlockPos());
 					if (itemFrameData.isPlayerPlaced()){
 						return ActionResult.PASS;
 					}
