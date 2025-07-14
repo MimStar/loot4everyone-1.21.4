@@ -3,6 +3,10 @@ package com.loot4everyone;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.block.enums.ChestType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Item;
@@ -11,6 +15,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
@@ -150,14 +155,54 @@ public class StateSaverAndLoader extends PersistentState {
         return serverState.itemframes.containsKey(blockPos);
     }
 
-    public static boolean isChestStatePresent(MinecraftServer server, BlockPos blockPos){
+    public static boolean isBarrelStatePresent(MinecraftServer server, BlockPos blockPos){
         StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.chests.containsKey(blockPos);
     }
 
-    public static boolean isChestStatePresentInPlayerState(MinecraftServer server, LivingEntity player, BlockPos blockPos){
+    public static BlockPos isChestStatePresent(MinecraftServer server, ChestBlockEntity chest){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+        BlockPos blockPos = chest.getPos();
+
+        if (serverState.chests.containsKey(blockPos)){
+            return blockPos;
+        }
+
+        BlockState blockState = chest.getCachedState();
+        if (blockState.get(ChestBlock.CHEST_TYPE) != ChestType.SINGLE){
+            Direction facing = blockState.get(ChestBlock.FACING);
+            BlockPos otherPos = blockPos.offset(blockState.get(ChestBlock.CHEST_TYPE) == ChestType.LEFT ? facing.rotateYClockwise() : facing.rotateYCounterclockwise());
+            if (serverState.chests.containsKey(otherPos)){
+                return otherPos;
+            }
+        }
+
+        return null;
+    }
+
+    public static boolean isBarrelStatePresentInPlayerState(MinecraftServer server, LivingEntity player, BlockPos blockPos){
         PlayerData playerState = getPlayerState(server, player);
         return playerState.getInventory().containsKey(blockPos);
+    }
+
+    public static BlockPos isChestStatePresentInPlayerState(MinecraftServer server, LivingEntity player, ChestBlockEntity chest){
+        PlayerData playerState = getPlayerState(server, player);
+        BlockPos blockPos = chest.getPos();
+
+        if (playerState.getInventory().containsKey(blockPos)){
+            return blockPos;
+        }
+
+        BlockState blockState = chest.getCachedState();
+        if (blockState.get(ChestBlock.CHEST_TYPE) != ChestType.SINGLE){
+            Direction facing = blockState.get(ChestBlock.FACING);
+            BlockPos otherPos = blockPos.offset(blockState.get(ChestBlock.CHEST_TYPE) == ChestType.LEFT ? facing.rotateYClockwise() : facing.rotateYCounterclockwise());
+            if(playerState.getInventory().containsKey(otherPos)){
+                return otherPos;
+            }
+        }
+
+        return null;
     }
 
     public static void saveState(MinecraftServer server) {

@@ -24,9 +24,9 @@ public abstract class BarrelBlockEntityMixin {
     @Inject(method = "onOpen", at = @At("HEAD"))
     private void onBarrelOpened(PlayerEntity player, CallbackInfo ci){
         BarrelBlockEntity barrel = (BarrelBlockEntity) (Object) this;
-        if (StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,barrel.getPos())){
+        if (StateSaverAndLoader.isBarrelStatePresent(Loot4Everyone.server,barrel.getPos())){
             BarrelViewers.addViewer(player,barrel.getPos());
-            if (StateSaverAndLoader.isChestStatePresentInPlayerState(Loot4Everyone.server,player,barrel.getPos())){
+            if (StateSaverAndLoader.isBarrelStatePresentInPlayerState(Loot4Everyone.server,player,barrel.getPos())){
                 PlayerData playerData = StateSaverAndLoader.getPlayerState(Loot4Everyone.server,player);
                 List<ItemStack> inventory = playerData.getInventory().get(barrel.getPos());
                 for (int i = 0; i < inventory.size(); i++) {
@@ -46,7 +46,7 @@ public abstract class BarrelBlockEntityMixin {
     @Inject(method = "onClose", at = @At("HEAD"))
     private void onBarrelClosed(PlayerEntity player, CallbackInfo ci){
         BarrelBlockEntity barrel = (BarrelBlockEntity) (Object) this;
-        if (StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,barrel.getPos())){
+        if (StateSaverAndLoader.isBarrelStatePresent(Loot4Everyone.server,barrel.getPos())){
             List<ItemStack> inventory = new ArrayList<>();
             for (int i = 0; i < barrel.size(); i++) {
                 inventory.add(barrel.getStack(i));
