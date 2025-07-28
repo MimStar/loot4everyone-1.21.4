@@ -164,7 +164,7 @@ public class Loot4Everyone implements ModInitializer {
 		PlayerBlockBreakEvents.BEFORE.register((World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) -> {
 			if (blockEntity instanceof ChestBlockEntity chest){
 				if (StateSaverAndLoader.getSettingsState(Loot4Everyone.server).getLootProtection() && ((chest.getLootTableSeed() != 0 && chest.getLootTable() != null) || StateSaverAndLoader.isChestStatePresent(Loot4Everyone.server,chest) != null)){
-					if (Objects.requireNonNull(player.getServer()).getPlayerManager().isOperator(player.getGameProfile())){
+					if (Loot4Everyone.server.getPlayerManager().isOperator(player.getGameProfile())){
 						return true;
 					}
 					return false;
@@ -172,7 +172,7 @@ public class Loot4Everyone implements ModInitializer {
 			}
 			else if (blockEntity instanceof BarrelBlockEntity barrel){
 				if (StateSaverAndLoader.getSettingsState(Loot4Everyone.server).getLootProtection() && ((barrel.getLootTableSeed() != 0 && barrel.getLootTable() != null) || StateSaverAndLoader.isBarrelStatePresent(Loot4Everyone.server,pos))){
-					if (Objects.requireNonNull(player.getServer()).getPlayerManager().isOperator(player.getGameProfile())){
+					if (Loot4Everyone.server.getPlayerManager().isOperator(player.getGameProfile())){
 						return true;
 					}
 					return false;
