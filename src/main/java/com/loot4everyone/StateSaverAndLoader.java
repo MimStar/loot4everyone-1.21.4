@@ -31,17 +31,20 @@ public class StateSaverAndLoader extends PersistentState {
     public HashMap<UUID,PlayerData> players;
     public HashMap<BlockPos,ChestData> chests;
     public HashMap<BlockPos, ItemFrameData> itemframes;
+    public SettingsData settings;
 
     public StateSaverAndLoader(){
         this.players = new HashMap<>();
         this.chests = new HashMap<>();
         this.itemframes = new HashMap<>();
+        this.settings = new SettingsData();
     }
 
-    public StateSaverAndLoader(Map<UUID,PlayerData> players ,Map<BlockPos,ChestData> chests, Map<BlockPos, ItemFrameData> itemframes){
+    public StateSaverAndLoader(Map<UUID,PlayerData> players ,Map<BlockPos,ChestData> chests, Map<BlockPos, ItemFrameData> itemframes, SettingsData settings){
         this.players = new HashMap<>(players);
         this.chests = new HashMap<>(chests);
         this.itemframes = new HashMap<>(itemframes);
+        this.settings = new SettingsData();
     }
 
     /*
@@ -117,7 +120,8 @@ public class StateSaverAndLoader extends PersistentState {
             Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
                     ChestData.CODEC).fieldOf("chests").forGetter(state -> state.chests),
             Codec.unboundedMap(Codec.STRING.xmap(StateSaverAndLoader::fromStringToBlockPos, StateSaverAndLoader::fromBlockPosToString),
-                    ItemFrameData.CODEC).fieldOf("itemframes").forGetter(state -> state.itemframes)
+                    ItemFrameData.CODEC).fieldOf("itemframes").forGetter(state -> state.itemframes),
+            SettingsData.CODEC.fieldOf("settings").forGetter(state -> state.settings)
     ).apply(instance, StateSaverAndLoader::new));
 
     private static final PersistentStateType<StateSaverAndLoader> type = new PersistentStateType<>(
@@ -148,6 +152,11 @@ public class StateSaverAndLoader extends PersistentState {
     public static ItemFrameData getItemFrameState(MinecraftServer server, BlockPos blockPos){
         StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.itemframes.computeIfAbsent(blockPos, blockPos1 -> new ItemFrameData());
+    }
+
+    public static SettingsData getSettingsState(MinecraftServer server){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+        return serverState.settings;
     }
 
     public static boolean isItemFrameStatePresent(MinecraftServer server, BlockPos blockPos){
