@@ -25,6 +25,7 @@ public class StateSaverAndLoader extends PersistentState {
     public HashMap<UUID,PlayerData> players = new HashMap<>();
     public HashMap<BlockPos,ChestData> chests = new HashMap<>();
     public HashMap<BlockPos, ItemFrameData> itemframes = new HashMap<>();
+    public SettingsData settings = new SettingsData();
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup wrapperLookup){
@@ -51,6 +52,7 @@ public class StateSaverAndLoader extends PersistentState {
             itemframesNbt.put(pos,itemframeNbt);
         })));
         nbt.put("itemframes", itemframesNbt);
+        nbt.putString("settings",settings.toString());
         return nbt;
     }
 
@@ -79,6 +81,10 @@ public class StateSaverAndLoader extends PersistentState {
             BlockPos pos = new BlockPos(Integer.parseInt(posParts[0]), Integer.parseInt(posParts[1]), Integer.parseInt(posParts[2]));
             state.itemframes.put(pos, itemFrameData);
         });
+        String settingsString = tag.getString("settings");
+        if (settingsString != null && !settingsString.isEmpty()) {
+            state.settings.setSettings(settingsString);
+        }
         return state;
     }
 
@@ -109,6 +115,11 @@ public class StateSaverAndLoader extends PersistentState {
     public static ItemFrameData getItemFrameState(MinecraftServer server, BlockPos blockPos){
         StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
         return serverState.itemframes.computeIfAbsent(blockPos, blockPos1 -> new ItemFrameData());
+    }
+
+    public static SettingsData getSettingsState(MinecraftServer server){
+        StateSaverAndLoader serverState = getServerState(Objects.requireNonNull(server));
+        return serverState.settings;
     }
 
     public static boolean isItemFrameStatePresent(MinecraftServer server, BlockPos blockPos){
